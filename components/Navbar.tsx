@@ -40,7 +40,7 @@ const Navbar: React.FC<NavbarProps> = ({
             <div className="w-10 h-10 bg-brand-600 rounded-lg flex items-center justify-center text-white">
               <QrCode size={24} />
             </div>
-            <span className="text-2xl font-bold text-slate-900 tracking-tight">EternoQR</span>
+            <span className="text-2xl font-bold text-slate-900 tracking-tight">EternizeQR</span>
           </div>
 
           {/* Desktop Menu */}

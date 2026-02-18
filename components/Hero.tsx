@@ -35,8 +35,8 @@ const Hero: React.FC<HeroProps> = ({ onOpenCreateModal, onOpenLoginModal, onView
         </h1>
 
         {/* Subheadline */}
-        <p className="max-w-2xl mx-auto text-lg md:text-xl text-slate-400 mb-10 animate-slide-up leading-relaxed" style={{ animationDelay: '0.1s' }}>
-          Crie um memorial digital eterno para seus entes queridos. Compartilhe fotos, vídeos e histórias através de um QR code em aço inoxidável.
+        <p className="max-w-2xl mx-auto text-base md:text-lg text-slate-400 mb-10 animate-slide-up leading-relaxed" style={{ animationDelay: '0.1s' }}>
+          Crie um tributo emocionante que dura para sempre. Reúna fotos, vídeos, áudios e histórias de vida em um memorial digital acessível instantaneamente através de um QR Code exclusivo.
         </p>
 
         {/* CTA Buttons */}

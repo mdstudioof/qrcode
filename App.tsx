@@ -20,6 +20,18 @@ const AppContent: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
 
+  // Check URL parameters on load for QR Code redirection
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get('view');
+    const idParam = params.get('id');
+
+    if (viewParam === 'memorial' && idParam) {
+      setSelectedMemorialId(idParam);
+      setCurrentView('view_memorial');
+    }
+  }, []);
+
   const handleCreateClick = () => {
     if (isAuthenticated) {
       setSelectedMemorialId(null); // Clear ID for creation
@@ -176,7 +188,7 @@ const AppContent: React.FC = () => {
             <footer className="bg-slate-900 text-white py-12 border-t border-slate-800">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
                 <div className="text-slate-400 text-sm">
-                  © 2024 EternoQR. Todos os direitos reservados.
+                  © 2024 EternizeQR. Todos os direitos reservados.
                 </div>
                 <div className="flex gap-6">
                   <a href="#" className="text-slate-400 hover:text-white transition-colors text-sm">Termos</a>

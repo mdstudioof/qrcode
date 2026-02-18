@@ -22,7 +22,10 @@ import {
   Clock,
   AlertOctagon,
   X,
-  AlertTriangle
+  AlertTriangle,
+  QrCode,
+  Download,
+  Share2
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -58,6 +61,9 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [confirmModal, setConfirmModal] = useState<ConfirmModalState | null>(null);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
   
+  // QR Code Modal State
+  const [selectedQrMemorial, setSelectedQrMemorial] = useState<Memorial | null>(null);
+
   // Profile State
   const [userCover, setUserCover] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
@@ -140,6 +146,11 @@ const Dashboard: React.FC<DashboardProps> = ({
     });
   };
 
+  const openQrModal = (e: React.MouseEvent, memorial: Memorial) => {
+    e.stopPropagation();
+    setSelectedQrMemorial(memorial);
+  };
+
   // --- EXECUÇÃO DAS AÇÕES ---
 
   const handleConfirmAction = async () => {
@@ -180,6 +191,56 @@ const Dashboard: React.FC<DashboardProps> = ({
       alert("Ocorreu um erro inesperado.");
     } finally {
       setIsProcessingAction(false);
+    }
+  };
+
+  const handleDownloadQr = async () => {
+    if (!selectedQrMemorial) return;
+    
+    // Construct the URL exactly as shown in the image src
+    const targetUrl = `${window.location.origin}?view=memorial&id=${selectedQrMemorial.id}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(targetUrl)}&margin=10`;
+    
+    try {
+      const response = await fetch(qrUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `qrcode-${selectedQrMemorial.name.replace(/\s+/g, '-').toLowerCase()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      alert("Erro ao baixar o QR Code. Tente novamente.");
+    }
+  };
+
+  const handleShare = async (e: React.MouseEvent, memorial: Memorial) => {
+    e.stopPropagation();
+    
+    // Constrói a URL que redireciona para a view_memorial
+    const url = `${window.location.origin}?view=memorial&id=${memorial.id}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Memorial de ${memorial.name}`,
+          text: `Confira o memorial eterno de ${memorial.name}.`,
+          url: url
+        });
+      } catch (err) {
+        // Usuário cancelou ou erro na API
+        console.log('Compartilhamento cancelado ou falhou', err);
+      }
+    } else {
+      // Fallback para área de transferência
+      try {
+        await navigator.clipboard.writeText(url);
+        alert("Link copiado para a área de transferência!");
+      } catch (err) {
+        alert("Não foi possível copiar o link.");
+      }
     }
   };
 
@@ -234,7 +295,57 @@ const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
       )}
+
+      {/* --- QR CODE MODAL --- */}
+      {selectedQrMemorial && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity"
+            onClick={() => setSelectedQrMemorial(null)}
+          ></div>
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm relative z-10 animate-slide-up overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="bg-brand-600 p-6 text-center relative">
+               <button 
+                  onClick={() => setSelectedQrMemorial(null)}
+                  className="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all"
+               >
+                 <X size={20} />
+               </button>
+               <h3 className="text-xl font-bold text-white">QR Code Eterno</h3>
+               <p className="text-brand-100 text-sm mt-1">Escaneie para visitar o memorial</p>
+            </div>
+
+            {/* QR Content */}
+            <div className="p-8 flex flex-col items-center">
+               <div className="bg-white p-4 rounded-2xl shadow-lg border border-slate-100 mb-6">
+                 <img 
+                   src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`${window.location.origin}?view=memorial&id=${selectedQrMemorial.id}`)}`}
+                   alt="QR Code" 
+                   className="w-48 h-48 object-contain"
+                 />
+               </div>
+               
+               <p className="text-center text-slate-900 font-bold text-lg mb-1">{selectedQrMemorial.name}</p>
+               <p className="text-center text-slate-500 text-sm mb-6">ID: {selectedQrMemorial.id.substring(0, 8)}...</p>
+
+               <button 
+                onClick={handleDownloadQr}
+                className="w-full py-3.5 bg-slate-900 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all shadow-lg"
+               >
+                 <Download size={20} />
+                 Baixar para Imprimir
+               </button>
+               <p className="text-xs text-center text-slate-400 mt-4 px-4">
+                 Ideal para imprimir em adesivos, placas de metal ou cerâmica para lápides.
+               </p>
+            </div>
+          </div>
+        </div>
+      )}
       {/* -------------------------------- */}
+
 
       {/* HEADER / PROFILE SECTION */}
       <div className="bg-white border-b border-slate-200 shadow-sm relative z-10">
@@ -244,7 +355,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             <img src={userCover} alt="Cover" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-brand-600 to-purple-600 flex items-center justify-center">
-               <div className="text-white/20 font-bold text-4xl">EternoQR</div>
+               <div className="text-white/20 font-bold text-4xl">EternizeQR</div>
             </div>
           )}
           
@@ -384,10 +495,27 @@ const Dashboard: React.FC<DashboardProps> = ({
                       </button>
                       
                       <button 
-                          onClick={() => onEditMemorial(memorial.id)}
-                          className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 hover:text-brand-600 transition-colors text-sm flex items-center justify-center gap-2"
+                          onClick={(e) => openQrModal(e, memorial)}
+                          className="p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-200 hover:text-slate-800 transition-colors flex items-center justify-center"
+                          title="Gerar QR Code"
                       >
-                          <Edit2 size={16} /> Editar
+                         <QrCode size={18} />
+                      </button>
+
+                      <button 
+                          onClick={(e) => handleShare(e, memorial)}
+                          className="p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-200 hover:text-brand-600 transition-colors flex items-center justify-center"
+                          title="Compartilhar Memorial"
+                      >
+                         <Share2 size={18} />
+                      </button>
+
+                      <button 
+                          onClick={() => onEditMemorial(memorial.id)}
+                          className="p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-200 hover:text-slate-800 transition-colors flex items-center justify-center"
+                          title="Editar Memorial"
+                      >
+                          <Edit2 size={18} />
                       </button>
                       
                       <button 

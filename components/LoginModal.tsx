@@ -64,7 +64,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSuccess }) =
                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
             </div>
             <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
-              {isSignUp ? 'Criar sua conta' : 'Acesse o EternoQR'}
+              {isSignUp ? 'Criar sua conta' : 'Acesse o EternizeQR'}
             </h2>
             <p className="text-slate-500 mt-2">
               {isSignUp ? 'Comece a criar memoriais eternos hoje.' : 'Entre para gerenciar suas homenagens.'}
